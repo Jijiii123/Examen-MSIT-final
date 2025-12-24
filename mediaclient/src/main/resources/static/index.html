@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>gRPC Media Manager - AMEZIANE</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #efeeb7 0%, #a395cb 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+    }
+
+    .header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+
+    .section {
+      background: white;
+      border-radius: 15px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .section h2 {
+      color: #8b40a4;
+      margin-bottom: 20px;
+      font-size: 1.8em;
+      border-bottom: 3px solid #e19cf9;
+      padding-bottom: 10px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin-right: 10px;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+
+    .result-box {
+      background: #f8f9fa;
+      border-left: 4px solid #667eea;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+      display: none;
+    }
+
+    .result-box.show {
+      display: block;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .result-box h3 {
+      color: #667eea;
+      margin-bottom: 10px;
+    }
+
+    .result-box pre {
+      background: white;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .video-card {
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .video-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      border-color: #667eea;
+    }
+
+    .video-card h4 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .video-card p {
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    .video-card .duration {
+      color: #667eea;
+      font-weight: 600;
+    }
+
+    .error {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      color: #856404;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+      display: none;
+    }
+
+    .error.show {
+      display: block;
+    }
+
+    .success {
+      background: #d4edda;
+      border-left: 4px solid #28a745;
+      color: #155724;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+      display: none;
+    }
+
+    .success.show {
+      display: block;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .loading.show {
+      display: block;
+    }
+
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .stat-card h3 {
+      font-size: 2em;
+      margin-bottom: 5px;
+    }
+
+    .stat-card p {
+      opacity: 0.9;
+    }
+
+    .two-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    @media (max-width: 768px) {
+      .two-columns {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎬 gRPC Media Manager</h1>
+      <p>Microservices Architecture Project - AMEZIANE</p>
+    </div>
+
+    <!-- Upload Video Section -->
+    <div class="section">
+      <h2>📤 Upload New Video</h2>
+      <form id="uploadForm">
+        <div class="two-columns">
+          <div class="form-group">
+            <label for="videoTitle">Video Title *</label>
+            <input type="text" id="videoTitle" required placeholder="Enter video title" />
+          </div>
+          <div class="form-group">
+            <label for="videoUrl">Video URL *</label>
+            <input type="url" id="videoUrl" required placeholder="https://..." />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="videoDescription">Description *</label>
+          <textarea id="videoDescription" required placeholder="Enter video description"></textarea>
+        </div>
+
+        <div class="two-columns">
+          <div class="form-group">
+            <label for="videoDuration">Duration (seconds) *</label>
+            <input type="number" id="videoDuration" required placeholder="300" min="1" />
+          </div>
+          <div class="form-group">
+            <label for="creatorName">Creator Name *</label>
+            <input type="text" id="creatorName" required placeholder="Enter creator name" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="creatorEmail">Creator Email *</label>
+          <input type="email" id="creatorEmail" required placeholder="creator@example.com" />
+        </div>
+
+        <button type="submit" class="btn">Upload Video</button>
+        <button type="button" class="btn btn-secondary" onclick="quickUpload()">Quick Upload (Demo Data)</button>
+      </form>
+
+      <div class="loading" id="uploadLoading">
+        <div class="spinner"></div>
+        <p>Uploading video...</p>
+      </div>
+
+      <div class="success" id="uploadSuccess"></div>
+      <div class="error" id="uploadError"></div>
+
+      <div class="result-box" id="uploadResult">
+        <h3>✅ Upload Successful</h3>
+        <pre id="uploadData"></pre>
+      </div>
+    </div>
+
+    <!-- Get Video by ID Section -->
+    <div class="section">
+      <h2>🔍 Get Video by ID</h2>
+      <form id="getVideoForm" style="display: flex; gap: 10px; align-items: end;">
+        <div class="form-group" style="flex: 1;">
+          <label for="videoId">Video ID</label>
+          <input type="text" id="videoId" placeholder="Enter video ID" required />
+        </div>
+        <button type="submit" class="btn">Get Video</button>
+      </form>
+
+      <div class="loading" id="videoLoading">
+        <div class="spinner"></div>
+        <p>Fetching video...</p>
+      </div>
+
+      <div class="error" id="videoError"></div>
+
+      <div class="result-box" id="videoResult">
+        <h3>Video Details</h3>
+        <div id="videoData"></div>
+      </div>
+    </div>
+
+    <!-- Get Creator Section -->
+    <div class="section">
+      <h2>👤 Get Creator Information</h2>
+      <form id="getCreatorForm" style="display: flex; gap: 10px; align-items: end;">
+        <div class="form-group" style="flex: 1;">
+          <label for="creatorId">Creator ID</label>
+          <input type="text" id="creatorId" placeholder="Enter creator ID" required />
+        </div>
+        <button type="submit" class="btn">Get Creator</button>
+        <button type="button" class="btn btn-success" onclick="getCreatorVideos()">Get Creator's Videos</button>
+      </form>
+
+      <div class="loading" id="creatorLoading">
+        <div class="spinner"></div>
+        <p>Fetching creator...</p>
+      </div>
+
+      <div class="error" id="creatorError"></div>
+
+      <div class="result-box" id="creatorResult">
+        <h3>Creator Details</h3>
+        <pre id="creatorData"></pre>
+      </div>
+
+      <div class="result-box" id="creatorVideosResult">
+        <h3>Creator's Videos</h3>
+        <div id="creatorVideosData"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:8080/api';
+
+    // Upload Video
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const title = document.getElementById('videoTitle').value;
+      const url = document.getElementById('videoUrl').value;
+      const description = document.getElementById('videoDescription').value;
+      const duration = document.getElementById('videoDuration').value;
+      const creatorName = document.getElementById('creatorName').value;
+      const creatorEmail = document.getElementById('creatorEmail').value;
+
+      showLoading('uploadLoading');
+      hideResults(['uploadSuccess', 'uploadError', 'uploadResult']);
+
+      try {
+        const response = await fetch(
+          `${API_BASE}/videos/upload?title=${encodeURIComponent(title)}&url=${encodeURIComponent(
+            url
+          )}&description=${encodeURIComponent(description)}&durationSeconds=${duration}&creatorName=${encodeURIComponent(
+            creatorName
+          )}&creatorEmail=${encodeURIComponent(creatorEmail)}`,
+          {
+            method: 'POST',
+          }
+        );
+
+        hideLoading('uploadLoading');
+
+        if (response.ok) {
+          const data = await response.json();
+          document.getElementById('uploadData').textContent = JSON.stringify(data, null, 2);
+          document.getElementById('uploadResult').classList.add('show');
+
+          const successEl = document.getElementById('uploadSuccess');
+          successEl.textContent = `✅ Video uploaded successfully! ID: ${data.id}`;
+          successEl.classList.add('show');
+
+          document.getElementById('uploadForm').reset();
+        } else {
+          let error;
+          try {
+            error = await response.json();
+          } catch {
+            error = {};
+          }
+          showError('uploadError', error.error || 'Failed to upload video');
+        }
+      } catch (error) {
+        hideLoading('uploadLoading');
+        showError('uploadError', 'Network error: ' + error.message);
+      }
+    });
+
+    // Quick Upload
+    async function quickUpload() {
+      showLoading('uploadLoading');
+      hideResults(['uploadSuccess', 'uploadError', 'uploadResult']);
+
+      try {
+        const response = await fetch(`${API_BASE}/videos/upload`, {
+          method: 'POST',
+        });
+
+        hideLoading('uploadLoading');
+
+        if (response.ok) {
+          const data = await response.json();
+          document.getElementById('uploadData').textContent = JSON.stringify(data, null, 2);
+          document.getElementById('uploadResult').classList.add('show');
+
+          const successEl = document.getElementById('uploadSuccess');
+          successEl.textContent = `✅ Quick upload successful! ID: ${data.id}`;
+          successEl.classList.add('show');
+        } else {
+          showError('uploadError', 'Failed to quick upload video');
+        }
+      } catch (error) {
+        hideLoading('uploadLoading');
+        showError('uploadError', 'Network error: ' + error.message);
+      }
+    }
+
+    // Get Video by ID
+    document.getElementById('getVideoForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const videoId = document.getElementById('videoId').value;
+
+      showLoading('videoLoading');
+      hideResults(['videoError', 'videoResult']);
+
+      try {
+        const response = await fetch(`${API_BASE}/videos/${encodeURIComponent(videoId)}`);
+
+        hideLoading('videoLoading');
+
+        if (response.ok) {
+          const data = await response.json();
+          displayVideoCard(data, 'videoData');
+          document.getElementById('videoResult').classList.add('show');
+        } else {
+          showError('videoError', `Video not found with ID: ${videoId}`);
+        }
+      } catch (error) {
+        hideLoading('videoLoading');
+        showError('videoError', 'Network error: ' + error.message);
+      }
+    });
+
+    // Get Creator
+    document.getElementById('getCreatorForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const creatorId = document.getElementById('creatorId').value;
+
+      showLoading('creatorLoading');
+      hideResults(['creatorError', 'creatorResult', 'creatorVideosResult']);
+
+      try {
+        const response = await fetch(`${API_BASE}/creators/${encodeURIComponent(creatorId)}`);
+
+        hideLoading('creatorLoading');
+
+        if (response.ok) {
+          const data = await response.json();
+          document.getElementById('creatorData').textContent = JSON.stringify(data, null, 2);
+          document.getElementById('creatorResult').classList.add('show');
+        } else {
+          showError('creatorError', `Creator not found with ID: ${creatorId}`);
+        }
+      } catch (error) {
+        hideLoading('creatorLoading');
+        showError('creatorError', 'Network error: ' + error.message);
+      }
+    });
+
+    // Get Creator's Videos
+    async function getCreatorVideos() {
+      const creatorId = document.getElementById('creatorId').value;
+
+      if (!creatorId) {
+        showError('creatorError', 'Please enter a creator ID first');
+        return;
+      }
+
+      showLoading('creatorLoading');
+      hideResults(['creatorError', 'creatorVideosResult']);
+
+      try {
+        const response = await fetch(
+          `${API_BASE}/creators/${encodeURIComponent(creatorId)}/videos`
+        );
+
+        hideLoading('creatorLoading');
+
+        if (response.ok) {
+          const data = await response.json();
+          displayVideoList(data, 'creatorVideosData');
+          document.getElementById('creatorVideosResult').classList.add('show');
+        } else {
+          showError('creatorError', `No videos found for creator ID: ${creatorId}`);
+        }
+      } catch (error) {
+        hideLoading('creatorLoading');
+        showError('creatorError', 'Network error: ' + error.message);
+      }
+    }
+
+    // Helper Functions
+    function displayVideoCard(video, elementId) {
+      const html = `
+        <div class="video-card">
+          <h4>🎬 ${video.title}</h4>
+          <p><strong>ID:</strong> ${video.id}</p>
+          <p><strong>Description:</strong> ${video.description}</p>
+          <p><strong>URL:</strong> <a href="${video.url}" target="_blank">${video.url}</a></p>
+          <p class="duration"><strong>Duration:</strong> ${formatDuration(
+            video.durationSeconds
+          )}</p>
+          ${
+            video.creator
+              ? `<p><strong>Creator:</strong> ${video.creator.name} (${video.creator.email})</p>`
+              : ''
+          }
+        </div>
+      `;
+      document.getElementById(elementId).innerHTML = html;
+    }
+
+    function displayVideoList(videos, elementId) {
+      if (!videos || videos.length === 0) {
+        document.getElementById(elementId).innerHTML = '<p>No videos found.</p>';
+        return;
+      }
+
+      const html = videos
+        .map(
+          (video) => `
+          <div class="video-card">
+            <h4>🎬 ${video.title}</h4>
+            <p><strong>ID:</strong> ${video.id}</p>
+            <p><strong>Description:</strong> ${video.description}</p>
+            <p><strong>URL:</strong> <a href="${video.url}" target="_blank">${video.url}</a></p>
+            <p class="duration"><strong>Duration:</strong> ${formatDuration(
+              video.durationSeconds
+            )}</p>
+          </div>
+        `
+        )
+        .join('');
+
+      document.getElementById(elementId).innerHTML = html;
+    }
+
+    function formatDuration(seconds) {
+      const totalSeconds = Number(seconds) || 0;
+      const mins = Math.floor(totalSeconds / 60);
+      const secs = totalSeconds % 60;
+      return `${mins}:${secs.toString().padStart(2, '0')} (${totalSeconds}s)`;
+    }
+
+    function showLoading(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('show');
+    }
+
+    function hideLoading(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('show');
+    }
+
+    function showError(id, message) {
+      const element = document.getElementById(id);
+      if (!element) return;
+      element.textContent = '❌ ' + message;
+      element.classList.add('show');
+    }
+
+    function hideResults(ids) {
+      ids.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('show');
+      });
+    }
+  </script>
+</body>
+</html>
